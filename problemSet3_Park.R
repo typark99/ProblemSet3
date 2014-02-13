@@ -7,7 +7,7 @@
 ## Set my directory.
 rm(list=ls())
 setwd("C:/Users/Taeyong/Documents/GitHub/ProblemSet3/")
-
+options(digits=3)
 
 ########## I. SAMPLING DISTRIBUTIONS AND P-VALUES ##########
 
@@ -270,7 +270,21 @@ fitTestChosen <- function (y, P, r, stat) { # y = a vector of ¡°true¡± observed 
 ## Run the function with some examples.
 fitTestChosen(y=y, P=P, r=r, stat=c("rmse", "mrae"))
 fitTestChosen(y=y, P=P, r=r, stat=c("rmse", "mad", "rmsle", "mrae"))
+fitTestChosen(y=y, P=P, r=r, stat=c("rmse", "mad", "rmsle"))
 fitTestChosen(y=y, P=P, r=NULL, stat=c("mad", "rmsle", "meape", "mrae"))
 fitTestChosen(y=y, P=P, r=NULL, stat=c("meape", "mrae"))
 
 
+### 4. Evaluate the accuracy of the models ###
+fitTest(y=y, P=P, r=r) # y, P, and r were defined above.
+
+## Results
+         rmse    mad   rmsle mape meape  mrae
+model1 0.0668 0.0419 0.00727 8.06  6.38 0.676
+model2 0.0655 0.0413 0.00328 7.83  6.26 0.667
+model3 0.0657 0.0411 0.00678 7.87  6.37 0.675
+
+## We find that model 2, overall, has the smallest error. 
+## Only for the statistic median alsolute deviation, model 3 has a slightly smaller error than model 2.
+## Also, given that the statistic MRAE is around 0.67 across the models, we learn that these three models fit the data better than the naive model.  
+## To conclude, including the mideterm election variable improved the model fit, whereas including the year fixed effect did not. 
