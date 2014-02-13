@@ -104,7 +104,7 @@ length(which(myFunction.q6(5)>=0)) #Coefficient 4: 1000 t-statistics are signifi
 length(which(myFunction.q6(6)>=0)) #Coefficient 5: 59 t-statistics are significant
 
 
-### 7. Re-run that code in parallel ###
+### 7. Re-run a code in parallel ###
 library(doSNOW)
 library(foreach)
 registerDoSNOW(makeCluster(4, type = "SOCK"))
@@ -127,7 +127,7 @@ system.time(foreach(i = 1:1000) %dopar% {FUN=myFunction.q5})
 
 ########## II. CALCULATING FIT STATISTICS ##########
 
-### Q. 1 ###
+### 1. Three statistical models ###
 
 ## Import the data
 myData <- read.table("https://pages.wustl.edu/montgomery/incumbents.txt", 
@@ -169,11 +169,102 @@ model3 <- lm(voteshare ~ chalquality
              data=myDataTraining)
 
 ## Make ¡°predictions¡± for the test data
-prediction1 <- predict(model1, newdata=myDataTest, se.fit=TRUE) # standard errors will be presented.
-prediction2 <- predict(model2, newdata=myDataTest, se.fit=TRUE)
-prediction3 <- predict(model3, newdata=myDataTest, se.fit=TRUE)
+prediction1 <- predict(model1, newdata=myDataTest) # standard errors will be presented.
+prediction2 <- predict(model2, newdata=myDataTest)
+prediction3 <- predict(model3, newdata=myDataTest)
 
 
 
-### Q. 2 ###
+### 2. A function for fit tests ###
 
+fitTest <- function (y, P, r) { # y = a vector of ¡°true¡± observed outcomes; P = a matrix of predictions; r = a vector of naive forecasts 
+  # RMSE (Root Mean Squared Error)
+  rmse <- apply(P, 2, function (x) sqrt(sum((x-y)^2)/length(x))) # Apply the RMSE formula to the column of P.
+  
+  # MAD (Median Alsolute Deviation)
+  mad <- apply(P, 2, function (x) median(abs(x-y))) # Apply the MAD formula to the coulmn of P.
+  
+  # RMSLE
+  rmsle <- apply(P, 2, function (x) sqrt(sum(log(x+1)-log(y+1))^2/length(x))) # Apply the RMSLE formular to the column of P.
+
+  # MAPE
+  mape <- apply(P, 2, function (x) sum((abs(x-y)/abs(y))*100)/length(x)) # Apply the MAPE formular to the column of P.
+  
+  # MEAPE
+  meape <- apply(P, 2, function (x) median((abs(x-y)/abs(y))*100)) # Apply the MEAPE formular to the column of P.
+
+  # MRAE
+  mrae <- apply(P, 2, function (x) median(abs(x-y)/abs(r-y))) # Apply the MRAE formular to the column of P.
+  
+  # Output
+  output <- NULL
+  output <- cbind(rmse, mad, rmsle, mape, meape, mrae)
+  rownames(output) <- c("model1", "model2", "model3")
+  return(output)
+}
+
+## y denotes the true observed values. 
+y<-myDataTest$voteshare
+## P denotes a matrix of the predicted data.
+P<-cbind(prediction1, prediction2, prediction3)
+## Run a naive forecasting model that includes only the challenger's quality variable.
+model4 <- lm(voteshare ~ chalquality,
+             data=myDataTraining)
+## Define r based on the naive forecasting model.
+r <- prediction4 <- predict(model4, newdata=myDataTest)
+
+## Run the function
+fitTest(y=y, P=P, r=r)
+
+
+### 3. Alter your code ###
+
+## To choose which fit statistics are calculated
+fitTestChosen <- function (y, P, r, stat) { # y = a vector of ¡°true¡± observed outcomes; P = a matrix of predictions; r = a vector of naive forecasts 
+  # RMSE (Root Mean Squared Error)
+  if ("rmse" %in% stat){
+    rmse <- apply(P, 2, function (x) sqrt(sum((x-y)^2)/length(x))) # Apply the RMSE formula to the coulmn of P.
+  } else {
+    rmse <- NULL
+  }
+  # MAD (Median Alsolute Deviation)
+  if ("mad" %in% stat){
+    mad <- apply(P, 2, function (x) median(abs(x-y))) # Apply the MAD formula to the coulmn of P.
+  } else {
+    mad <- NULL
+  }
+  # RMSLE
+  if ("rmsle" %in% stat){
+    rmsle <- apply(P, 2, function (x) sqrt(sum(log(x+1)-log(y+1))^2/length(x))) # Apply the RMSLE formular to the column of P.
+  } else {
+    rmsle <- NULL
+  }
+  # MAPE
+  if ("mape" %in% stat){
+    mape <- apply(P, 2, function (x) sum((abs(x-y)/abs(y))*100)/length(x)) # Apply the MAPE formular to the column of P.
+  }  else {
+    mape <- NULL
+  }
+  # MEAPE
+  if ("meape" %in% stat){
+    meape <- apply(P, 2, function (x) median((abs(x-y)/abs(y))*100)) # Apply the MEAPE formular to the column of P.
+  } else {
+    meape <- NULL
+  }
+  # MRAE
+  if ("mrae" %in% stat){
+    mrae <- apply(P, 2, function (x) median(abs(x-y)/abs(r-y))) # Apply the MRAE formular to the column of P.
+  } else {
+    mrae <- NULL
+  }
+  
+  # Output
+  output <- NULL
+  output <- cbind(rmse, mad, rmsle, mape, meape, mrae)
+  rownames(output) <- c("model1", "model2", "model3")
+  return(output)
+}
+
+## Run the function with some examples.
+fitTestChosen(y=y, P=P, r=r, stat=c("rmse", "mrae"))
+fitTestChosen(y=y, P=P, r=r, stat=c("mad", "rmsle", "meape", "mrae"))
