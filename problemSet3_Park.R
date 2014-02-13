@@ -286,5 +286,5 @@ model3 0.0657 0.0411 0.00678 7.87  6.37 0.675
 
 ## We find that model 2, overall, has the smallest error. 
 ## Only for the statistic median alsolute deviation, model 3 has a slightly smaller error than model 2.
-## Also, given that the statistic MRAE is around 0.67 across the models, we learn that these three models fit the data better than the naive model.  
-## To conclude, including the mideterm election variable improved the model fit, whereas including the year fixed effect did not. 
+## Also, given that the statistic MRAE is around 0.67 across the models, we learn that these three models perform predictions better than the naive model.  
+## To conclude, including the mideterm election variable improved the prediction, whereas including the year fixed effect did not. 
