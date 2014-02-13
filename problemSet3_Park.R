@@ -103,3 +103,77 @@ length(which(myFunction.q6(4)>=0)) #Coefficient 3: 47 t-statistics are significa
 length(which(myFunction.q6(5)>=0)) #Coefficient 4: 1000 t-statistics are significant
 length(which(myFunction.q6(6)>=0)) #Coefficient 5: 59 t-statistics are significant
 
+
+### 7. Re-run that code in parallel ###
+library(doSNOW)
+library(foreach)
+registerDoSNOW(makeCluster(4, type = "SOCK"))
+## I attempt to compare the system time using the function for question 5
+system.time(sapply(1:1000, FUN=myFunction.q5)) 
+system.time(foreach(i = 1:1000) %dopar% {FUN=myFunction.q5})
+##The results
+
+#without parallel
+#user  system elapsed 
+#2.29    0.00    2.29
+
+#parallel
+#user  system elapsed 
+#0.99    0.03    1.06 
+
+## It seems that parallel improves the processing in terms of the use of CPU and time.
+
+
+
+########## II. CALCULATING FIT STATISTICS ##########
+
+### Q. 1 ###
+
+## Import the data
+myData <- read.table("https://pages.wustl.edu/montgomery/incumbents.txt", 
+                          header=TRUE, row.names="x")
+
+## Case-wise deletion
+summary(myData) # We see that there are a significant amount of missing values, in particular for the variable chalspend
+myData <- na.omit(myData) # By case-wise deletion, now myData have 3193 observations.
+
+## Subset the data at random
+set.seed(0520)
+random <- sample(1:3193, 3193/2) # Randomly select the rows that will belong to the first partition.
+myDataTraining <- myData[random, ] # 1596 obs
+myDataTest <- myData[-random, ] # 1597 obs
+
+## Build three statistical models using myDataTraining
+## To examine the effect of the challenger's quality on voteshare, consider the folloiwing model.
+model1 <- lm(voteshare ~ chalquality # challenger's quality
+             + chalspend # challernger spending
+             + incspend # incumbent spending
+             + incparty, # incumbent's party
+             data=myDataTraining)
+
+## Now, add the midterm variable to control for whether the election is a midterm election.
+model2 <- lm(voteshare ~ chalquality 
+             + chalspend 
+             + incspend 
+             + incparty 
+             + midterm, 
+             data=myDataTraining)
+
+## Finally, add the year variable to take into account the year fixed effect.
+model3 <- lm(voteshare ~ chalquality 
+             + chalspend 
+             + incspend 
+             + incparty 
+             + midterm 
+             + year, 
+             data=myDataTraining)
+
+## Make ¡°predictions¡± for the test data
+prediction1 <- predict(model1, newdata=myDataTest, se.fit=TRUE) # standard errors will be presented.
+prediction2 <- predict(model2, newdata=myDataTest, se.fit=TRUE)
+prediction3 <- predict(model3, newdata=myDataTest, se.fit=TRUE)
+
+
+
+### Q. 2 ###
+
