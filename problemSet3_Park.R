@@ -115,11 +115,11 @@ system.time(foreach(i = 1:1000) %dopar% {FUN=myFunction.q5})
 
 #without parallel
 #user  system elapsed 
-#2.29    0.00    2.29
+#2.25    0.00    2.26
 
 #parallel
 #user  system elapsed 
-#0.99    0.03    1.06 
+#0.94    0.03    0.97 
 
 ## It seems that parallel improves the processing in terms of the use of CPU and time.
 
@@ -169,7 +169,7 @@ model3 <- lm(voteshare ~ chalquality
              data=myDataTraining)
 
 ## Make ¡°predictions¡± for the test data
-prediction1 <- predict(model1, newdata=myDataTest) # standard errors will be presented.
+prediction1 <- predict(model1, newdata=myDataTest) 
 prediction2 <- predict(model2, newdata=myDataTest)
 prediction3 <- predict(model3, newdata=myDataTest)
 
@@ -219,7 +219,9 @@ fitTest(y=y, P=P, r=r)
 
 ### 3. Alter your code ###
 
-## To choose which fit statistics are calculated
+## To ensure that the user can choose which fit statistics are calculated
+## and the function still works if the baseline model is not provided (just drop the MRAE).
+
 fitTestChosen <- function (y, P, r, stat) { # y = a vector of ¡°true¡± observed outcomes; P = a matrix of predictions; r = a vector of naive forecasts 
   # RMSE (Root Mean Squared Error)
   if ("rmse" %in% stat){
@@ -252,7 +254,7 @@ fitTestChosen <- function (y, P, r, stat) { # y = a vector of ¡°true¡± observed 
     meape <- NULL
   }
   # MRAE
-  if ("mrae" %in% stat){
+  if ("mrae" %in% stat & is.null(r)==FALSE){
     mrae <- apply(P, 2, function (x) median(abs(x-y)/abs(r-y))) # Apply the MRAE formular to the column of P.
   } else {
     mrae <- NULL
@@ -267,4 +269,8 @@ fitTestChosen <- function (y, P, r, stat) { # y = a vector of ¡°true¡± observed 
 
 ## Run the function with some examples.
 fitTestChosen(y=y, P=P, r=r, stat=c("rmse", "mrae"))
-fitTestChosen(y=y, P=P, r=r, stat=c("mad", "rmsle", "meape", "mrae"))
+fitTestChosen(y=y, P=P, r=r, stat=c("rmse", "mad", "rmsle", "mrae"))
+fitTestChosen(y=y, P=P, r=NULL, stat=c("mad", "rmsle", "meape", "mrae"))
+fitTestChosen(y=y, P=P, r=NULL, stat=c("meape", "mrae"))
+
+
